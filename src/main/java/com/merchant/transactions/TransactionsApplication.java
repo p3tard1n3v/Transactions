@@ -17,29 +17,31 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.math.BigDecimal;
 
 @SpringBootApplication
+@EnableScheduling
 public class TransactionsApplication implements CommandLineRunner {
 	public static final String RAKE_TASK_CVS_IMPORT = "rake:task:cvs:import";
 	public static final String IMPORT_MERCHANTS = ":merchants=";
 	public static final String IMPORT_USERS = ":users=";
 	private final UserService userService;
 	private final MerchantService merchantService;
-	private final AuthorizeTransactionService authorizeTransactionService;
+	private final TransactionService transactionService;
 	private final ChargeAndRefundService chargeAndRefundService;
 	private final RakeTaskService rakeTaskService;
 
 	@Autowired
 	public TransactionsApplication(final UserService userService,
 								   final MerchantService merchantService,
-								   final AuthorizeTransactionService authorizeTransactionService,
+								   final TransactionService transactionService,
 								   final ChargeAndRefundService chargeAndRefundService,
 								   final RakeTaskService rakeTaskService) {
 		this.userService = userService;
 		this.merchantService = merchantService;
-		this.authorizeTransactionService = authorizeTransactionService;
+		this.transactionService = transactionService;
 		this.chargeAndRefundService = chargeAndRefundService;
 		this.rakeTaskService = rakeTaskService;
 	}
@@ -120,7 +122,7 @@ public class TransactionsApplication implements CommandLineRunner {
 				.customerPhone("+359888345678")
 				.merchant(merchantEntity)
 				.build();
-		AuthorizeTransactionEntity transEntity1 = authorizeTransactionService.save(transaction1);
+		AuthorizeTransactionEntity transEntity1 = transactionService.save(transaction1);
 
 		BigDecimal amount2 = new BigDecimal(.23);
 		AuthorizeTransactionDto transaction2 = AuthorizeTransactionDto.builder()
@@ -129,7 +131,7 @@ public class TransactionsApplication implements CommandLineRunner {
 				.customerPhone("+359888111345")
 				.merchant(merchantEntity)
 				.build();
-		AuthorizeTransactionEntity transEntity2 = authorizeTransactionService.save(transaction2);
+		AuthorizeTransactionEntity transEntity2 = transactionService.save(transaction2);
 
 		BigDecimal amount3 = new BigDecimal(33333.23);
 		AuthorizeTransactionDto transaction3 = AuthorizeTransactionDto.builder()
@@ -138,7 +140,7 @@ public class TransactionsApplication implements CommandLineRunner {
 				.customerPhone("+359888111000")
 				.merchant(merchantEntity)
 				.build();
-		AuthorizeTransactionEntity transEntity3 = authorizeTransactionService.save(transaction3);
+		AuthorizeTransactionEntity transEntity3 = transactionService.save(transaction3);
 
 		AuthorizeTransactionDto transaction4 = AuthorizeTransactionDto.builder()
 				.amount(BigDecimal.ZERO)
@@ -146,7 +148,7 @@ public class TransactionsApplication implements CommandLineRunner {
 				.customerPhone("+359888111300")
 				.merchant(merchantEntity)
 				.build();
-		AuthorizeTransactionEntity transEntity4 = authorizeTransactionService.save(transaction4);
+		AuthorizeTransactionEntity transEntity4 = transactionService.save(transaction4);
 
 		AuthorizeTransactionDto transaction5 = AuthorizeTransactionDto.builder()
 				.amount(new BigDecimal(300.3))
@@ -155,7 +157,7 @@ public class TransactionsApplication implements CommandLineRunner {
 				.reference(transEntity4.getId())
 				.merchant(merchantEntity)
 				.build();
-		AuthorizeTransactionEntity transEntity5 = authorizeTransactionService.save(transaction5);
+		AuthorizeTransactionEntity transEntity5 = transactionService.save(transaction5);
 
 		chargeAndRefundService.approve(transEntity2);
 		ApprovedTransactionEntity approvedTransaction = chargeAndRefundService.approve(transEntity3);

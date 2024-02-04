@@ -1,13 +1,11 @@
 package com.merchant.transactions.service;
 
 import com.merchant.transactions.dto.AuthorizeTransactionDto;
-import com.merchant.transactions.model.ApprovedTransactionEntity;
 import com.merchant.transactions.model.AuthorizeTransactionEntity;
 import com.merchant.transactions.model.MerchantEntity;
 import com.merchant.transactions.model.enums.TransactionStatus;
 import com.merchant.transactions.repository.AuthorizeTransactionRepository;
-import com.merchant.transactions.service.impl.AuthorizeAuthorizeTransactionServiceImpl;
-import org.junit.jupiter.api.IndicativeSentencesGeneration;
+import com.merchant.transactions.service.impl.TransactionServiceImpl;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -24,7 +22,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class AuthorizeAuthorizeTransactionServiceTests {
+public class TransactionServiceTests {
     private static final UUID UUID_TRANSACTION = UUID.randomUUID();
     private static final String EMAIL = "email@email.com";
     private static final String PHONE = "+359888345678";
@@ -34,7 +32,7 @@ public class AuthorizeAuthorizeTransactionServiceTests {
     @Mock
     private AuthorizeTransactionRepository authorizeTransactionRepository;
     @InjectMocks
-    private AuthorizeAuthorizeTransactionServiceImpl authorizeAuthorizeTransactionService;
+    private TransactionServiceImpl authorizeAuthorizeTransactionService;
     @Captor
     ArgumentCaptor<AuthorizeTransactionEntity> authorizeTransactionEntityCaptor;
 
