@@ -91,10 +91,14 @@
 			<version>8.13.29</version>
 		</dependency>
 
+		<!-- https://mvnrepository.com/artifact/org.apache.commons/commons-csv -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>1.10.0</version>
+		</dependency>
 
 	</dependencies>
-
-
 
 	<build>
 		<plugins>

@@ -1,7 +1,7 @@
 package com.merchant.transactions;
 
-import com.merchant.transactions.dto.MerchantDto;
 import com.merchant.transactions.dto.AuthorizeTransactionDto;
+import com.merchant.transactions.dto.MerchantDto;
 import com.merchant.transactions.dto.UserDto;
 import com.merchant.transactions.model.ApprovedTransactionEntity;
 import com.merchant.transactions.model.AuthorizeTransactionEntity;
@@ -9,39 +9,67 @@ import com.merchant.transactions.model.MerchantEntity;
 import com.merchant.transactions.model.UserEntity;
 import com.merchant.transactions.model.enums.MerchantStatus;
 import com.merchant.transactions.model.enums.UserRole;
-import com.merchant.transactions.service.ChargeAndRefundService;
-import com.merchant.transactions.service.MerchantService;
-import com.merchant.transactions.service.AuthorizeTransactionService;
-import com.merchant.transactions.service.UserService;
+import com.merchant.transactions.service.*;
+import com.merchant.transactions.service.impl.NotAllowedOperationRefundException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
-import com.merchant.transactions.service.impl.NotAllowedOperationRefundException;
 
 import java.math.BigDecimal;
 
 @SpringBootApplication
-public class TransactionsApplication {
-
-	private UserService userService;
-	private MerchantService merchantService;
-	private AuthorizeTransactionService authorizeTransactionService;
-	private ChargeAndRefundService chargeAndRefundService;
+public class TransactionsApplication implements CommandLineRunner {
+	public static final String RAKE_TASK_CVS_IMPORT = "rake:task:cvs:import";
+	public static final String IMPORT_MERCHANTS = ":merchants=";
+	public static final String IMPORT_USERS = ":users=";
+	private final UserService userService;
+	private final MerchantService merchantService;
+	private final AuthorizeTransactionService authorizeTransactionService;
+	private final ChargeAndRefundService chargeAndRefundService;
+	private final RakeTaskService rakeTaskService;
 
 	@Autowired
 	public TransactionsApplication(final UserService userService,
 								   final MerchantService merchantService,
 								   final AuthorizeTransactionService authorizeTransactionService,
-								   final ChargeAndRefundService chargeAndRefundService) {
+								   final ChargeAndRefundService chargeAndRefundService,
+								   final RakeTaskService rakeTaskService) {
 		this.userService = userService;
 		this.merchantService = merchantService;
 		this.authorizeTransactionService = authorizeTransactionService;
 		this.chargeAndRefundService = chargeAndRefundService;
+		this.rakeTaskService = rakeTaskService;
 	}
 	public static void main(String[] args) {
 		SpringApplication.run(TransactionsApplication.class, args);
+	}
+
+	@Override
+	public void run(String... args) throws Exception {
+		if (!(args.length > 0 && args[0].startsWith(RAKE_TASK_CVS_IMPORT))) return;
+		rakeTask(args);
+	}
+
+	private void rakeTask(String... args) {
+		System.out.println(args[0]);
+		String[] arguments = args[0].split(",");
+		for (var arg : arguments) {
+			if (arg.startsWith(RAKE_TASK_CVS_IMPORT + IMPORT_MERCHANTS)) {
+				rakeTaskService.importMerchants(parseFileName(arg));
+			} else if (arg.startsWith(RAKE_TASK_CVS_IMPORT + IMPORT_USERS)) {
+				rakeTaskService.importUsers(parseFileName(arg));
+			}
+		}
+
+		System.exit(0);
+	}
+
+	private String parseFileName(String arg) {
+		String[] nameValue = arg.split("=");
+		return nameValue[1];
 	}
 
 	@EventListener
