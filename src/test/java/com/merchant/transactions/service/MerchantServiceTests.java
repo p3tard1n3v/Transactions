@@ -9,7 +9,6 @@ import com.merchant.transactions.model.enums.TransactionStatus;
 import com.merchant.transactions.repository.ApprovedTransactionRepository;
 import com.merchant.transactions.repository.MerchantRepository;
 import com.merchant.transactions.service.impl.MerchantServiceImpl;
-import com.merchant.transactions.service.impl.UserServiceImpl;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -44,7 +43,7 @@ public class MerchantServiceTests {
     @Test
     public void shouldFindByIdReturnFindByIdFromRepository() {
         MerchantEntity merchantFromRepo = mock(MerchantEntity.class);
-        long merchantId = 324234l;
+        long merchantId = 324234L;
         Optional<MerchantEntity> merchantEntityOptional = mock(Optional.class);
         when(merchantRepository.findById(merchantId)).thenReturn(merchantEntityOptional);
         when(merchantEntityOptional.get()).thenReturn(merchantFromRepo);
@@ -92,7 +91,7 @@ public class MerchantServiceTests {
     @Test
     void shouldCalculateTotalSumByAddingApprovedAndsSubtractRefundTransactions() {
         MerchantEntity merchantFromRepo = new MerchantEntity();
-        long merchantId = 324234l;
+        long merchantId = 324234L;
         merchantFromRepo.setId(merchantId);
         Optional<MerchantEntity> merchantEntityOptional = mock(Optional.class);
         when(merchantRepository.findById(merchantId)).thenReturn(merchantEntityOptional);
@@ -100,7 +99,7 @@ public class MerchantServiceTests {
         List<ApprovedTransactionEntity> transactionEntities = new ArrayList<>();
         populateTransactions(transactionEntities);
         BigDecimal sum = calculateTotalSum(transactionEntities);
-        when(approvedTransactionRepository.findByMerchantId(merchantId)).thenReturn(transactionEntities);
+        when(approvedTransactionRepository.findAllByMerchantId(merchantId)).thenReturn(transactionEntities);
         when(merchantRepository.save(any(MerchantEntity.class))).thenReturn(merchantFromRepo);
 
         merchantService.updateTotalSum(merchantId);

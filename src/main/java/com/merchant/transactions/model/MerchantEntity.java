@@ -31,8 +31,6 @@ public class MerchantEntity extends BaseEntity {
     private MerchantStatus status;
     private BigDecimal totalTransactionSum;
 
-    //@OneToMany(fetch = FetchType.LAZY)
-    //@JoinColumn(name = "user_id", referencedColumnName = "id")
     @ManyToOne
     private UserEntity user;
 

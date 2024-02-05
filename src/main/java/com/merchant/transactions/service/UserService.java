@@ -7,4 +7,5 @@ public interface  UserService {
     UserEntity save(UserDto user);
     UserEntity findByUsername(String username);
     long usersCount();
+    boolean isAdmin(String username);
 }

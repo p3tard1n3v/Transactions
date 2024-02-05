@@ -1,0 +1,77 @@
+<html
+        xmlns:th="http://thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+<head>
+    <title>Merchant Edit</title>
+</head>
+<body class="d-flex flex-column h-100">
+<main class="flex-shrink-0">
+    <section layout:fragment="body" class="py-5">
+        <div class="container">
+            <form role="form" method="post" th:action="@{/merchants/{merchantId}/edit(merchantId=${merchant.id})}" th:object="${merchant}">
+                <input type="hidden" th:field="*{id}">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="name">name</label>
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="name"
+                                name="name"
+                                th:field="*{name}"
+                                placeholder="Name">
+                        <p th:if="${#fields.hasErrors('name')}" class="text-danger" th:errors="*{name}"></p>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="email">Email</label>
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="email"
+                                name="email"
+                                th:field="*{email}"
+                                placeholder="Email">
+                        <p th:if="${#fields.hasErrors('email')}" class="text-danger" th:errors="*{email}"></p>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="totalTransactionSum">Total Sum</label>
+                        <input
+                                type="text"
+                                class="form-control"
+                                id="totalTransactionSum"
+                                name="totalTransactionSum"
+                                th:field="*{totalTransactionSum}"
+                                placeholder="Email">
+                        <p th:if="${#fields.hasErrors('totalTransactionSum')}" class="text-danger" th:errors="*{totalTransactionSum}"></p>
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="status">Status</label>
+                        <select id="status" class="form-select" aria-label="Default select example"
+                                name="status"  required>
+                            <option th:each="statusvalue : ${merchantStatuses}"
+                                    th:selected ="${merchant.status==statusvalue}"
+                                    th:text="${statusvalue}">
+                            </option>
+                        </select>
+                        <p th:if="${#fields.hasErrors('status')}" class="text-danger" th:errors="*{status}"></p>
+                    </div>
+                </div>
+                <div class="form-group mb-3">
+                    <label for="description">Description</label>
+                    <input
+                            type="text"
+                            class="form-control"
+                            id="description"
+                            name="description"
+                            th:field="*{description}"
+                            placeholder="1234 Main St">
+                    <p th:if="${#fields.hasErrors('description')}" class="text-danger" th:errors="*{description}"></p>
+                </div>
+                <button type="submit" class="btn btn-primary">Edit</button>
+            </form>
+        </div>
+    </section>
+</main>
+</body>
+</html>

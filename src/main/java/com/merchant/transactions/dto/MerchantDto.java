@@ -8,6 +8,7 @@ import lombok.Data;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
@@ -23,4 +24,5 @@ public class MerchantDto {
     private BigDecimal totalTransactionSum;
     private UserEntity user;
     private Set<AuthorizeTransactionDto> transactions;
+    private LocalDateTime created;
 }

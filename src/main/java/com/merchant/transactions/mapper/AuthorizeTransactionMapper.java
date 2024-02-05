@@ -2,8 +2,10 @@ package com.merchant.transactions.mapper;
 
 
 import com.merchant.transactions.dto.AuthorizeTransactionDto;
-import com.merchant.transactions.model.ApprovedTransactionEntity;
 import com.merchant.transactions.model.AuthorizeTransactionEntity;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class AuthorizeTransactionMapper {
 
@@ -28,6 +30,11 @@ public class AuthorizeTransactionMapper {
                 .customerPhone(transactionEntity.getCustomerPhone())
                 .reference(transactionEntity.getReference())
                 .merchant(transactionEntity.getMerchant())
-                .build();
+                .created(transactionEntity.getCreated())
+                .build().populateCreatedDate();
+    }
+
+    public static List<AuthorizeTransactionDto> mapToDto(List<AuthorizeTransactionEntity> transactionEntities) {
+        return transactionEntities.stream().map(AuthorizeTransactionMapper::mapToDto).collect(Collectors.toList());
     }
 }

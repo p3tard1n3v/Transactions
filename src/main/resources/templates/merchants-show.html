@@ -1,0 +1,57 @@
+<html
+        xmlns:th="http://thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+<head>
+    <title>Merchant Show</title>
+</head>
+<body class="d-flex flex-column">
+
+<section layout:fragment="body">
+    <header class="py-5 bg-light border-bottom mb-4">
+        <div class="container">
+            <div class="text-center my-5">
+                <h1 class="fw-bolder" th:text="${merchant.name}"></h1>
+            </div>
+        </div>
+    </header>
+    <!-- Page content-->
+    <div class="container">
+        <div class="row">
+            <div th:if="${param.error}" class="alert alert-success">
+                The merchant cannot be deleted because it active transactions!
+            </div>
+            <!-- Blog entries-->
+            <div class="col-lg-8">
+                <!-- Featured blog post-->
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <div class="small text-muted" th:text="${merchantCreated}"></div>
+                        <label for="email" class="card-subtitle">Email</label>
+                        <p id="email" class="card-text" th:text="${merchant.email}"></p>
+                        <label for="sum" class="card-subtitle">Total Amount</label>
+                        <p id="sum" class="card-text" th:text="${merchant.totalTransactionSum}"></p>
+                        <h2 class="card-title">About Merchant</h2>
+                        <p class="card-text" th:text="${merchant.description}"></p>
+
+                        <div>
+                            <a class="btn btn-primary" th:href="@{/merchants/{merchantId}/delete(merchantId=${merchant.id})}">Delete</a>
+                            <a class="btn btn-primary" th:href="@{/merchants/{merchantId}/edit(merchantId=${merchant.id})}">Edit</a>
+                            <a class="btn btn-primary" th:href="@{/merchants/{merchantId}/transactions(merchantId=${merchant.id})}">View Transactions</a>
+                         </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-lg-6">
+
+                    </div>
+                </div>
+            </div>
+
+            </div>
+        </div>
+    </div>
+</section>
+</body>
+</html>

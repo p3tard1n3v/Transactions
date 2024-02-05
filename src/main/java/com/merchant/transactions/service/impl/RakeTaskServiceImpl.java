@@ -20,8 +20,8 @@ import java.util.function.Consumer;
 
 @Service
 public class RakeTaskServiceImpl implements RakeTaskService {
-    private UserService userService;
-    private MerchantService merchantService;
+    private final UserService userService;
+    private final MerchantService merchantService;
 
     public RakeTaskServiceImpl (final UserService userService, final MerchantService merchantService) {
         this.userService = userService;

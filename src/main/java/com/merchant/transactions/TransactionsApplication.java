@@ -50,7 +50,7 @@ public class TransactionsApplication implements CommandLineRunner {
 	}
 
 	@Override
-	public void run(String... args) throws Exception {
+	public void run(String... args) {
 		if (!(args.length > 0 && args[0].startsWith(RAKE_TASK_CVS_IMPORT))) return;
 		rakeTask(args);
 	}
@@ -166,10 +166,5 @@ public class TransactionsApplication implements CommandLineRunner {
 		} catch (NotAllowedOperationRefundException e) {
 			System.out.println(e.getMessage());
 		}
-	}
-
-	private BigDecimal totalSum(Long merchantId) {
-		MerchantEntity merchant = merchantService.findById(merchantId);
-		return merchant.getTotalTransactionSum() != null ? merchant.getTotalTransactionSum() : BigDecimal.ZERO;
 	}
 }

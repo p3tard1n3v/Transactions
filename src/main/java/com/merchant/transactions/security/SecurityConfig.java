@@ -2,6 +2,7 @@ package com.merchant.transactions.security;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -21,20 +22,14 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http
-//                .authorizeHttpRequests((authz) -> authz
-//                        .antMatchers("/api/admin/**").hasRole("ADMIN")
-//                        .antMatchers("/api/user/**").hasRole("USER")
-//                        .anyRequest().authenticated()
-//                );
         http.csrf().disable()
                 .authorizeRequests(auth -> auth
-                        .requestMatchers("/login", "/register", "/clubs", "/css/**", "/js/**").permitAll()
-                        .anyRequest().authenticated())
+                        .requestMatchers( "/login", "/merchants",  "/css/**", "/js/**").permitAll()
+                        .anyRequest().authenticated()).httpBasic(Customizer.withDefaults())
 
                 .formLogin(form -> form
                         .loginPage("/login")
-                        .defaultSuccessUrl("/clubs")
+                        .defaultSuccessUrl("/merchants")
                         .loginProcessingUrl("/login")
                         .failureUrl("/login?error=true")
                         .permitAll()
@@ -42,7 +37,6 @@ public class SecurityConfig {
                         logout -> logout
                                 .logoutRequestMatcher(new AntPathRequestMatcher("/logout")).permitAll()
                 );
-
         return http.build();
     }
 

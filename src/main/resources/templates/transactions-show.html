@@ -1,0 +1,32 @@
+<html
+        xmlns:th="http://thymeleaf.org"
+        xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+        layout:decorate="~{layout}">
+<head>
+    <title>Transactions List</title>
+</head>
+<body class="d-flex flex-column h-100">
+<main class="flex-shrink-0">
+    <section layout:fragment="body" class="py-5">
+        <div class="container px-5 my-5">
+            <div class="text-center mb-5">
+                <h1 class="fw-bolder">List of Transactions</h1>
+                <p class="lead fw-normal text-muted mb-0" th:text="'For Merchant '+ ${merchantName}"></p>
+            </div>
+            <div class="row gx-5">
+                <div th:each="transaction :${transactions}" class="col-lg-6 mb-2">
+                    <div class="position-relative mb-3">
+                        <div class="small text-muted" th:text="${transaction.createdDateFormatted}"></div>
+                        <a th:text="${transaction.amount}" class="h4 fw-bolder text-decoration-none link-dark stretched-link" href="#!"></a>
+                        <br/>
+                        <a th:text="${transaction.customerEmail}" class="h4 fw-bolder text-decoration-none link-dark stretched-link" href="#!"></a>
+                        <br/>
+                        <a th:text="${transaction.customerPhone}" class="h4 fw-bolder text-decoration-none link-dark stretched-link" href="#!"></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+</body>
+</html>

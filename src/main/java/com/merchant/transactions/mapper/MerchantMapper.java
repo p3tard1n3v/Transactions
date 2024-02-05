@@ -3,6 +3,7 @@ package com.merchant.transactions.mapper;
 import com.merchant.transactions.dto.MerchantDto;
 import com.merchant.transactions.model.MerchantEntity;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class MerchantMapper {
@@ -27,8 +28,13 @@ public class MerchantMapper {
                 .status(merchantEntity.getStatus())
                 .totalTransactionSum(merchantEntity.getTotalTransactionSum())
                 .user(merchantEntity.getUser())
+                .created(merchantEntity.getCreated())
                 .transactions(merchantEntity.getTransactions().stream().map(trans -> AuthorizeTransactionMapper.mapToDto(trans)).collect(Collectors.toSet()))
                 .build();
+    }
+
+    public static List<MerchantDto> mapToDto(List<MerchantEntity> merchantEntities) {
+        return merchantEntities.stream().map(MerchantMapper::mapToDto).collect(Collectors.toList());
     }
 
 }
