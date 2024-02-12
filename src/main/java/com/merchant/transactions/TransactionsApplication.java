@@ -8,9 +8,9 @@ import com.merchant.transactions.model.AuthorizeTransactionEntity;
 import com.merchant.transactions.model.MerchantEntity;
 import com.merchant.transactions.model.UserEntity;
 import com.merchant.transactions.model.enums.MerchantStatus;
-import com.merchant.transactions.model.enums.UserRole;
 import com.merchant.transactions.service.*;
-import com.merchant.transactions.service.impl.NotAllowedOperationRefundException;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -19,14 +19,16 @@ import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 @SpringBootApplication
 @EnableScheduling
 public class TransactionsApplication implements CommandLineRunner {
 	public static final String RAKE_TASK_CVS_IMPORT = "rake:task:cvs:import";
 	public static final String IMPORT_MERCHANTS = ":merchants=";
-	public static final String IMPORT_USERS = ":users=";
 	private final UserService userService;
 	private final MerchantService merchantService;
 	private final TransactionService transactionService;
@@ -50,19 +52,18 @@ public class TransactionsApplication implements CommandLineRunner {
 	}
 
 	@Override
-	public void run(String... args) {
+	public void run(String... args) throws IOException {
 		if (!(args.length > 0 && args[0].startsWith(RAKE_TASK_CVS_IMPORT))) return;
 		rakeTask(args);
 	}
 
-	private void rakeTask(String... args) {
-		System.out.println(args[0]);
+	private void rakeTask(String... args) throws IOException {
 		String[] arguments = args[0].split(",");
 		for (var arg : arguments) {
 			if (arg.startsWith(RAKE_TASK_CVS_IMPORT + IMPORT_MERCHANTS)) {
-				rakeTaskService.importMerchants(parseFileName(arg));
-			} else if (arg.startsWith(RAKE_TASK_CVS_IMPORT + IMPORT_USERS)) {
-				rakeTaskService.importUsers(parseFileName(arg));
+				CSVParser csvParser = CSVParser.parse(Files.newBufferedReader(Paths.get(parseFileName(arg))),
+						CSVFormat.RFC4180.withFirstRecordAsHeader());
+				rakeTaskService.importMerchants(csvParser);
 			}
 		}
 
@@ -84,15 +85,13 @@ public class TransactionsApplication implements CommandLineRunner {
 		UserEntity userEntityWithUserRole = null;
 		if (userService.usersCount() == 0) {
 			userService.save(UserDto.builder()
-					.username("test1")
+					.name("test1")
 					.password("test1")
-					.role(UserRole.ADMIN)
 					.build());
 
 			UserEntity user2 = userService.save(UserDto.builder()
-					.username("test2")
+					.name("test2")
 					.password("test2")
-					.role(UserRole.USER)
 					.build());
 
 			userEntityWithUserRole = user2;
@@ -108,11 +107,11 @@ public class TransactionsApplication implements CommandLineRunner {
 
 		MerchantDto merchant = MerchantDto.builder()
 				.name("merchant1")
+				.password("merchant1")
 				.email("test@merchant1.com")
 				.description("test@merchant1.com merchant1")
 				.status(MerchantStatus.ACTIVE)
 				.totalTransactionSum(BigDecimal.ZERO)
-				.user(userEntity)
 				.build();
 		MerchantEntity merchantEntity = merchantService.save(merchant);
 
@@ -161,10 +160,6 @@ public class TransactionsApplication implements CommandLineRunner {
 
 		chargeAndRefundService.approve(transEntity2);
 		ApprovedTransactionEntity approvedTransaction = chargeAndRefundService.approve(transEntity3);
-		try {
-			chargeAndRefundService.refund(approvedTransaction);
-		} catch (NotAllowedOperationRefundException e) {
-			System.out.println(e.getMessage());
-		}
+		chargeAndRefundService.refund(approvedTransaction);
 	}
 }

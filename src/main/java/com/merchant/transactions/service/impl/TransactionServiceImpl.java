@@ -9,6 +9,8 @@ import com.merchant.transactions.model.MerchantEntity;
 import com.merchant.transactions.model.enums.TransactionStatus;
 import com.merchant.transactions.repository.ApprovedTransactionRepository;
 import com.merchant.transactions.repository.AuthorizeTransactionRepository;
+import com.merchant.transactions.repository.ErrorTransactionRepository;
+import com.merchant.transactions.repository.ReversalTransactionRepository;
 import com.merchant.transactions.service.MerchantService;
 import com.merchant.transactions.service.TransactionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,15 +27,21 @@ import java.util.UUID;
 public class TransactionServiceImpl implements TransactionService {
     private final AuthorizeTransactionRepository authorizeTransactionRepository;
     private final ApprovedTransactionRepository approvedTransactionRepository;
+    private final ReversalTransactionRepository reversalTransactionRepository;
+    private final ErrorTransactionRepository errorTransactionRepository;
 
     private final MerchantService merchantService;
 
     @Autowired
     public TransactionServiceImpl(final AuthorizeTransactionRepository authorizeTransactionRepository,
                                   final ApprovedTransactionRepository approvedTransactionRepository,
+                                  final ErrorTransactionRepository errorTransactionRepository,
+                                  final ReversalTransactionRepository reversalTransactionRepository,
                                   final MerchantService merchantService) {
         this.authorizeTransactionRepository = authorizeTransactionRepository;
         this.approvedTransactionRepository = approvedTransactionRepository;
+        this.errorTransactionRepository = errorTransactionRepository;
+        this.reversalTransactionRepository = reversalTransactionRepository;
         this.merchantService = merchantService;
     }
     @Override
@@ -44,10 +52,15 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     @Override
+    public void save(AuthorizeTransactionDto authorizeTransactionDto, MerchantEntity merchantEntity) {
+        authorizeTransactionDto.setMerchant(merchantEntity);
+        save(authorizeTransactionDto);
+    }
+
+    @Override
     public void deleteOldThanOneHourTransactions() {
         LocalDateTime nowMinusHour = LocalDateTime.now().minusHours(1);
         approvedTransactionRepository.deleteAllByLastUpdatedLessThan(nowMinusHour);
-        authorizeTransactionRepository.deleteAllByLastUpdatedLessThanWithoutReferences(nowMinusHour);
     }
 
     @Override
@@ -63,17 +76,26 @@ public class TransactionServiceImpl implements TransactionService {
         }
 
         for (var approved : approvedTransactionDtos) {
-            mapAuthorized.get(approved.getReference()).setApprovedReferenceBy(approved);
+            UUID reference = approved.getReference();
+            if (canBeReferenced(approved, reference)) {
+                mapAuthorized.get(reference).setApprovedReferenceBy(approved);
+            }
         }
 
         return authorizeTransactionDtos;
     }
 
+    private static boolean canBeReferenced(ApprovedTransactionDto approved, UUID reference) {
+        return reference != null && (
+                approved.getStatus().equals(TransactionStatus.APPROVED)
+                || approved.getStatus().equals(TransactionStatus.REFUNDED));
+    }
+
     private AuthorizeTransactionEntity save(AuthorizeTransactionEntity transaction) {
         if (transaction.getReference() != null) {
-            transaction.setStatus(TransactionStatus.ERROR);
+            return errorTransactionRepository.save(AuthorizeTransactionMapper.mapToErrorTransaction(transaction));
         } else if (transaction.getAmount().equals(BigDecimal.ZERO)) {
-            transaction.setStatus(TransactionStatus.REVERSED);
+            return reversalTransactionRepository.save(AuthorizeTransactionMapper.mapToReversalTransaction(transaction));
         }
 
         return authorizeTransactionRepository.save(transaction);

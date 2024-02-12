@@ -12,7 +12,14 @@ public interface MerchantService {
 
     MerchantEntity save(MerchantDto merchantDto);
     void updateTotalSum(Long merchantId);
-    List<MerchantDto> findByUserName(String username);
+    MerchantDto findByName(String username);
+
+    MerchantEntity findEntityByCurrentUser();
+
+    boolean isAuthorized(MerchantDto merchantDto);
+
+    boolean isAuthorized(long merchantId);
+
     List<MerchantDto> findAll();
 
     int transactionsCountById(Long merchantId);

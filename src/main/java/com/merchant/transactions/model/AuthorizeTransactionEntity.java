@@ -1,11 +1,9 @@
 package com.merchant.transactions.model;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.Data;
+import jakarta.persistence.Column;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 
 import javax.validation.constraints.Email;
@@ -19,6 +17,7 @@ import javax.validation.constraints.Size;
 @AllArgsConstructor
 @SuperBuilder
 @Entity
+@DiscriminatorValue("AUTHORIZED")
 public class AuthorizeTransactionEntity extends ApprovedTransactionEntity {
     @Email
     @NotEmpty

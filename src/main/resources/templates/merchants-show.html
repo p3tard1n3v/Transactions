@@ -4,6 +4,24 @@
         layout:decorate="~{layout}">
 <head>
     <title>Merchant Show</title>
+    <script th:inline="javascript">
+        function doAjaxDelete(){
+            /*<![CDATA[*/
+
+            var merchantId = /*[[${merchant.id}]]*/;
+
+            /*]]>*/
+            $.ajax({
+                type: "DELETE",
+                url: "/merchants/"+merchantId+"/delete",
+                success: function(response){
+                    window.location.href = "/merchants";},
+                error: function(e) {
+                    window.location.href = "/merchants/"+merchantId+"?error=true";
+                    },
+                });
+       }
+    </script>
 </head>
 <body class="d-flex flex-column">
 
@@ -35,7 +53,7 @@
                         <p class="card-text" th:text="${merchant.description}"></p>
 
                         <div>
-                            <a class="btn btn-primary" th:href="@{/merchants/{merchantId}/delete(merchantId=${merchant.id})}">Delete</a>
+                            <a class="btn btn-primary" id="delete-button" data-method="delete" href="javascript:doAjaxDelete()">Delete</a>
                             <a class="btn btn-primary" th:href="@{/merchants/{merchantId}/edit(merchantId=${merchant.id})}">Edit</a>
                             <a class="btn btn-primary" th:href="@{/merchants/{merchantId}/transactions(merchantId=${merchant.id})}">View Transactions</a>
                          </div>

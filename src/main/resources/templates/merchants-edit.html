@@ -4,12 +4,41 @@
         layout:decorate="~{layout}">
 <head>
     <title>Merchant Edit</title>
+    <script th:inline="javascript">
+        function updateMerchant(){
+            var merchantDto = {
+                id: update_form.id.value,
+                name: update_form.name.value,
+                email: update_form.email.value,
+                totalTransactionSum: update_form.totalTransactionSum.value,
+                status: update_form.status.value,
+                description: update_form.description.value
+            }
+            $.ajax({
+                type: "PATCH",
+                headers: {
+                    'Content-type': 'application/json; charset=UTF-8'
+                },
+                url: "/merchants/"+ merchantDto.id +"/edit",
+                data: JSON.stringify(merchantDto),
+                success: function(response) {
+                    window.location.href = "merchants/" + merchantDto.id;
+                },
+                error: function(e) {
+                    if (e.status === 405) {
+                        window.location.href = "/merchants";
+                    }
+                    window.location.href = "/merchants/"+ merchantDto.id +"/edit?error=true";
+                },
+            });
+       }
+    </script>
 </head>
 <body class="d-flex flex-column h-100">
 <main class="flex-shrink-0">
     <section layout:fragment="body" class="py-5">
         <div class="container">
-            <form role="form" method="post" th:action="@{/merchants/{merchantId}/edit(merchantId=${merchant.id})}" th:object="${merchant}">
+            <form id="update_form" role="form" method="post" th:action="@{/merchants/{merchantId}/edit(merchantId=${merchant.id})}" th:object="${merchant}">
                 <input type="hidden" th:field="*{id}">
                 <div class="form-row">
                     <div class="form-group col-md-6">
@@ -68,7 +97,7 @@
                             placeholder="1234 Main St">
                     <p th:if="${#fields.hasErrors('description')}" class="text-danger" th:errors="*{description}"></p>
                 </div>
-                <button type="submit" class="btn btn-primary">Edit</button>
+                <a type="submit" class="btn btn-primary" onclick="updateMerchant();">Edit</a>
             </form>
         </div>
     </section>

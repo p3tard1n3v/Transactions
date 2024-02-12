@@ -4,7 +4,7 @@ import com.merchant.transactions.dto.MerchantDto;
 import com.merchant.transactions.mapper.MerchantMapper;
 import com.merchant.transactions.model.ApprovedTransactionEntity;
 import com.merchant.transactions.model.MerchantEntity;
-import com.merchant.transactions.model.UserEntity;
+import com.merchant.transactions.model.RefundTransactionEntity;
 import com.merchant.transactions.model.enums.TransactionStatus;
 import com.merchant.transactions.repository.ApprovedTransactionRepository;
 import com.merchant.transactions.repository.MerchantRepository;
@@ -62,9 +62,27 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     @Override
-    public List<MerchantDto> findByUserName(String username) {
-        return MerchantMapper.mapToDto(merchantRepository.findByUserName(username));
+    public MerchantDto findByName(String username) {
+        return MerchantMapper.mapToDto(merchantRepository.findByName(username));
     }
+
+    @Override
+    public MerchantEntity findEntityByCurrentUser() {
+        return merchantRepository.findByName(SecurityUtil.getSessionUser());
+    }
+
+    @Override
+    public boolean isAuthorized(MerchantDto merchantDto) {
+        String username = SecurityUtil.getSessionUser();
+        return SecurityUtil.isAdminUser() || merchantDto.getName().equals(username);
+    }
+
+    @Override
+    public boolean isAuthorized(long merchantId) {
+        MerchantDto merchantDto = findDtoById(merchantId);
+        return isAuthorized(merchantDto);
+    }
+
 
     @Override
     public List<MerchantDto> findAll() {
@@ -73,7 +91,7 @@ public class MerchantServiceImpl implements MerchantService {
 
     @Override
     public int transactionsCountById(Long merchantId) {
-        return merchantRepository.transactionsCountById(merchantId);
+        return approvedTransactionRepository.countAllByMerchantId(merchantId);
     }
 
     @Override
@@ -84,10 +102,6 @@ public class MerchantServiceImpl implements MerchantService {
         merchant.setEmail(merchantDto.getEmail());
         merchant.setDescription(merchantDto.getDescription());
         merchant.setTotalTransactionSum(merchantDto.getTotalTransactionSum());
-
-        String username = SecurityUtil.getSessionUser();
-        UserEntity user = userRepository.findByUsername(username);
-        merchant.setUser(user);
 
         merchantRepository.save(merchant);
     }
@@ -104,7 +118,9 @@ public class MerchantServiceImpl implements MerchantService {
         if (transactionEntities != null) {
             return transactionEntities
                     .stream()
-                    .filter(transaction -> transaction.getStatus() != null && APPROVED_STATUS.contains(transaction.getStatus()))
+                    .filter(transaction ->
+                            transaction.getClass().equals(RefundTransactionEntity.class)
+                                    || transaction.getClass().equals(ApprovedTransactionEntity.class))
                     .map(transaction -> makeRefundedTransactionNegative(transaction))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
@@ -113,7 +129,7 @@ public class MerchantServiceImpl implements MerchantService {
     }
 
     private BigDecimal makeRefundedTransactionNegative(ApprovedTransactionEntity transaction) {
-        return transaction.getStatus().equals(TransactionStatus.REFUNDED)
+        return transaction.getClass().equals(RefundTransactionEntity.class)
                 ? transaction.getAmount().negate()
                 : transaction.getAmount();
     }

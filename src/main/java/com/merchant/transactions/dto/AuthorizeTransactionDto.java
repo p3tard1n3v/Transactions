@@ -3,7 +3,6 @@ package com.merchant.transactions.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.merchant.transactions.model.MerchantEntity;
 import jakarta.annotation.Generated;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
@@ -12,12 +11,6 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
 import java.util.ArrayList;
 import java.util.List;
-
-//@Jacksonized //missing
-//@Builder
-//@Data
-//@NoArgsConstructor
-//@AllArgsConstructor
 @Data
 @SuperBuilder
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -31,7 +24,6 @@ public class AuthorizeTransactionDto extends ApprovedTransactionDto {
     private String customerEmail;
     @JsonProperty("customerPhone")
     private String customerPhone;
-    private MerchantEntity merchant;
     private List<ApprovedTransactionDto> approvedReferenceBy;
 
 

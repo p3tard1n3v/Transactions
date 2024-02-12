@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.merchant.transactions.model.MerchantEntity;
 import com.merchant.transactions.model.enums.TransactionStatus;
 import jakarta.annotation.Generated;
 import jakarta.persistence.EnumType;
@@ -27,13 +28,12 @@ public class ApprovedTransactionDto {
     private UUID id;
     @JsonProperty("amount")
     private BigDecimal amount;
-   // @JsonProperty("status")
     @Enumerated(EnumType.STRING)
     @JsonIgnore
     private TransactionStatus status;
     @JsonIgnore
-    //@JsonProperty("status")
     private UUID reference;
+    private MerchantEntity merchant;
     private LocalDateTime created;
     private String createdDateFormatted;
     public ApprovedTransactionDto populateCreatedDate() {

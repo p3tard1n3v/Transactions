@@ -2,12 +2,8 @@ package com.merchant.transactions.controller;
 
 import com.merchant.transactions.dto.AuthorizeTransactionDto;
 import com.merchant.transactions.dto.MerchantDto;
-import com.merchant.transactions.model.UserEntity;
-import com.merchant.transactions.model.enums.UserRole;
-import com.merchant.transactions.security.SecurityUtil;
 import com.merchant.transactions.service.MerchantService;
 import com.merchant.transactions.service.TransactionService;
-import com.merchant.transactions.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,23 +15,19 @@ import java.util.List;
 @Controller
 public class TransactionController {
     private final MerchantService merchantService;
-    private final UserService userService;
     private final TransactionService transactionService;
 
     @Autowired
-    public TransactionController(final MerchantService merchantService, final UserService userService,
+    public TransactionController(final MerchantService merchantService,
                                  final TransactionService transactionService) {
         this.merchantService = merchantService;
-        this.userService = userService;
         this.transactionService = transactionService;
     }
 
     @GetMapping("/merchants/{merchantId}/transactions")
     public String showTransactions(@PathVariable("merchantId") long merchantId, Model model) {
-        String username = SecurityUtil.getSessionUser();
         MerchantDto merchantDto = merchantService.findDtoById(merchantId);
-        UserEntity user = userService.findByUsername(username);
-        if (user.getRole().equals(UserRole.USER) && !user.getId().equals(merchantDto.getUser().getId())){
+        if (!merchantService.isAuthorized(merchantDto)){
             return "redirect:/merchants";
         }
 

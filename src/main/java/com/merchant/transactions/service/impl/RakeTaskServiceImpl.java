@@ -7,15 +7,11 @@ import com.merchant.transactions.model.enums.UserRole;
 import com.merchant.transactions.service.MerchantService;
 import com.merchant.transactions.service.RakeTaskService;
 import com.merchant.transactions.service.UserService;
-import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.function.Consumer;
 
 @Service
@@ -28,50 +24,51 @@ public class RakeTaskServiceImpl implements RakeTaskService {
         this.merchantService = merchantService;
     }
     @Override
-    public void importMerchants(String fileName) {
+    public void importMerchants(CSVParser csvParser) {
         Consumer<CSVRecord> populateAndSave = (csvRecord) -> {
-            MerchantStatus status = csvRecord.get("status").toUpperCase().equals(MerchantStatus.INACTIVE.name())
-                    ? MerchantStatus.INACTIVE : MerchantStatus.ACTIVE;
-
-            MerchantDto merchantDto = MerchantDto.builder()
-                    .name(csvRecord.get("name"))
-                    .description(csvRecord.get("description"))
-                    .email(csvRecord.get("email"))
-                    .status(status)
-                    .totalTransactionSum(new BigDecimal(csvRecord.get("total_transaction_sum")))
-                    .user(userService.findByUsername(csvRecord.get("username")))
-                    .build();
-
-            merchantService.save(merchantDto);
-        };
-
-        parseCSV(fileName, populateAndSave);
-    }
-
-    @Override
-    public void importUsers(String fileName) {
-        Consumer<CSVRecord> populateAndSave = (csvRecord) -> {
-            UserRole role = csvRecord.get("role").toUpperCase().equals(UserRole.ADMIN.name())
-                    ? UserRole.ADMIN : UserRole.USER;
-            UserDto userDto = UserDto.builder()
-                    .username(csvRecord.get("username"))
-                    .password(csvRecord.get("password"))
-                    .role(role).build();
-
-            userService.save(userDto);
-        };
-
-        parseCSV(fileName, populateAndSave);
-    }
-
-    private void parseCSV(String fileName, Consumer<CSVRecord> populateAndSave) {
-        try (CSVParser csvParser = new CSVParser(Files.newBufferedReader(Paths.get(fileName)),
-                CSVFormat.RFC4180.withFirstRecordAsHeader())) {
-            for (CSVRecord csvRecord : csvParser) {
-                populateAndSave.accept(csvRecord);
+            if (UserRole.ADMIN.equals(getUserRole(csvRecord))) {
+                saveAdminUser(csvRecord);
+            } else {
+                saveMerchant(csvRecord);
             }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        };
+
+        parseCSV(csvParser, populateAndSave);
+    }
+
+    private static UserRole getUserRole(CSVRecord csvRecord) {
+        return csvRecord.get("role").toUpperCase().equals(UserRole.ADMIN.name())
+                ? UserRole.ADMIN : UserRole.USER;
+    }
+
+    private void saveMerchant(CSVRecord csvRecord) {
+        MerchantStatus status = csvRecord.get("status").toUpperCase().equals(MerchantStatus.INACTIVE.name())
+                ? MerchantStatus.INACTIVE : MerchantStatus.ACTIVE;
+
+        MerchantDto merchantDto = MerchantDto.builder()
+                .name(csvRecord.get("name"))
+                .password(csvRecord.get("password"))
+                .description(csvRecord.get("description"))
+                .email(csvRecord.get("email"))
+                .status(status)
+                .totalTransactionSum(new BigDecimal(csvRecord.get("total_transaction_sum")))
+                .build();
+
+        merchantService.save(merchantDto);
+    }
+
+    private void saveAdminUser(CSVRecord csvRecord) {
+        UserDto userDto = UserDto.builder()
+                .name(csvRecord.get("name"))
+                .password(csvRecord.get("password"))
+                .build();
+
+        userService.save(userDto);
+    }
+
+    private void parseCSV(CSVParser csvParser, Consumer<CSVRecord> populateAndSave) {
+        for (CSVRecord csvRecord : csvParser.getRecords()) {
+            populateAndSave.accept(csvRecord);
         }
     }
 }

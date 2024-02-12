@@ -1,6 +1,7 @@
 package com.merchant.transactions.service;
 
+import org.apache.commons.csv.CSVParser;
+
 public interface RakeTaskService {
-    void importMerchants(String fileName);
-    void importUsers(String fileName);
+    void importMerchants(CSVParser csvParser);
 }

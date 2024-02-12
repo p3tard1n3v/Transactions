@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @SuperBuilder
 @MappedSuperclass
-public class BaseEntity {
+public abstract class BaseEntity {
     @Version
     private int version;
     @CreationTimestamp

@@ -1,9 +1,8 @@
 package com.merchant.transactions.dto;
 
-import com.merchant.transactions.model.UserEntity;
 import com.merchant.transactions.model.enums.MerchantStatus;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotEmpty;
@@ -12,17 +11,18 @@ import java.time.LocalDateTime;
 import java.util.Set;
 
 @Data
-@Builder
-public class MerchantDto {
-    private Long id;
-    private String name;
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
+public class MerchantDto extends UserDto{
     private String description;
     @Email
     @NotEmpty
     private String  email;
-    MerchantStatus status;
+    private MerchantStatus status;
     private BigDecimal totalTransactionSum;
-    private UserEntity user;
     private Set<AuthorizeTransactionDto> transactions;
     private LocalDateTime created;
 }

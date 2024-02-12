@@ -1,6 +1,5 @@
 package com.merchant.transactions.model;
 
-import com.merchant.transactions.model.enums.TransactionStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -17,7 +16,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @SuperBuilder
 @Entity(name = "transactions")
-@DiscriminatorValue("ApprovedTransactionEntity")
+@DiscriminatorValue("APPROVED")
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 public class ApprovedTransactionEntity extends BaseEntity {
     @Id
@@ -26,8 +25,6 @@ public class ApprovedTransactionEntity extends BaseEntity {
     private UUID id;
 
     private BigDecimal amount;
-
-    private TransactionStatus status;
 
     @Column(name = "reference_id")
     @JdbcType(VarcharJdbcType.class)

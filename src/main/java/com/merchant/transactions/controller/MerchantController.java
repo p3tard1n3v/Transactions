@@ -1,19 +1,18 @@
 package com.merchant.transactions.controller;
 
 import com.merchant.transactions.dto.MerchantDto;
-import com.merchant.transactions.model.UserEntity;
 import com.merchant.transactions.model.enums.MerchantStatus;
-import com.merchant.transactions.model.enums.UserRole;
 import com.merchant.transactions.security.SecurityUtil;
 import com.merchant.transactions.service.MerchantService;
 import com.merchant.transactions.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -22,6 +21,7 @@ import java.util.List;
 public class MerchantController {
     private final MerchantService merchantService;
     private final UserService userService;
+
 
     @Autowired
     public MerchantController(final MerchantService merchantService, final UserService userService) {
@@ -38,8 +38,8 @@ public class MerchantController {
     @GetMapping("/merchants")
     public String listMerchants(Model model) {
         String username = SecurityUtil.getSessionUser();
-        List<MerchantDto> merchantsDto = userService.isAdmin(username) ?
-                merchantService.findAll() : merchantService.findByUserName(username);
+        List<MerchantDto> merchantsDto = SecurityUtil.isAdminUser()?
+                merchantService.findAll() : List.of(merchantService.findByName(username));
         model.addAttribute("merchants", merchantsDto);
 
         return "merchants-list";
@@ -47,10 +47,8 @@ public class MerchantController {
 
     @GetMapping("/merchants/{merchantId}")
     public String showMerchant(@PathVariable("merchantId") long merchantId, Model model) {
-        String username = SecurityUtil.getSessionUser();
         MerchantDto merchantDto = merchantService.findDtoById(merchantId);
-        UserEntity user = userService.findByUsername(username);
-        if (user.getRole().equals(UserRole.USER) && !user.getId().equals(merchantDto.getUser().getId())){
+        if (!merchantService.isAuthorized(merchantDto)){
             return "redirect:/merchants";
         }
 
@@ -60,35 +58,44 @@ public class MerchantController {
         return "merchants-show";
     }
 
-    @GetMapping("/merchants/{merchantId}/delete")
-    public String deleteMerchant(@PathVariable("merchantId") Long merchantId) {
-        if (merchantService.transactionsCountById(merchantId) == 0) {
-            merchantService.delete(merchantId);
-            return "redirect:/merchants";
+    @DeleteMapping("/merchants/{merchantId}/delete")
+    public ResponseEntity<String> deleteMerchant(@PathVariable("merchantId") Long merchantId) {
+        if (!merchantService.isAuthorized(merchantId)){
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body("");
         }
 
-        return "redirect:/merchants/" + merchantId + "?error=true";
+        if (merchantService.transactionsCountById(merchantId) == 0) {
+            merchantService.delete(merchantId);
+            return ResponseEntity.ok("Merchant deleted successfully!");
+        }
+
+        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body("Merchant has active transactions, so cannot be deleted");
     }
 
     @GetMapping("/merchants/{merchantId}/edit")
     public String editMerchant(@PathVariable("merchantId") Long merchantId, Model model) {
         MerchantDto merchantDto = merchantService.findDtoById(merchantId);
+        if (!merchantService.isAuthorized(merchantDto)){
+            return "redirect:/merchants";
+        }
         model.addAttribute("merchant", merchantDto);
         model.addAttribute("merchantStatuses", MerchantStatus.values());
         return "merchants-edit";
     }
 
-    @PostMapping("/merchants/{merchantId}/edit")
-    public String updateMerchant(@PathVariable("merchantId") Long merchantId,
-                                 @Valid @ModelAttribute("merchant") MerchantDto merchant,
-                                 BindingResult result, Model model) {
-        if(result.hasErrors()) {
-            model.addAttribute("merchant", merchant);
-            return "merchants-edit";
+    @PatchMapping("/merchants/{merchantId}/edit")
+    public ResponseEntity<String> updateMerchant(@PathVariable("merchantId") Long merchantId,
+                                 @RequestBody MerchantDto merchant,
+                                 BindingResult result) {
+        if (!merchantService.isAuthorized(merchant.getId())){
+            return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body("");
+        }
+        if (result.hasErrors()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("");
         }
         merchant.setId(merchantId);
         merchantService.updateMerchant(merchant);
-        return "redirect:/merchants";
+        return ResponseEntity.ok("Merchant updated successfully!");
     }
 
     private String formatDate(LocalDateTime dateTime) {

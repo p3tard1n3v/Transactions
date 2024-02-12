@@ -22,6 +22,14 @@
                         <a th:text="${transaction.customerEmail}" class="h4 fw-bolder text-decoration-none link-dark stretched-link" href="#!"></a>
                         <br/>
                         <a th:text="${transaction.customerPhone}" class="h4 fw-bolder text-decoration-none link-dark stretched-link" href="#!"></a>
+                        <br/>
+                        <a th:text="${transaction.status}" class="h4 fw-bolder text-decoration-none link-dark stretched-link" href="#!"></a>
+                    </div>
+                    <div th:each="transaction :${transaction.approvedReferenceBy}" class="col-lg-6 mb-0">
+                        <div class="small text-muted" th:text="${transaction.createdDateFormatted}"></div>
+                        <a th:text="${transaction.amount}" class="h6 fw-bolder text-decoration-none link-dark stretched-link" href="#!"></a>
+                        <br/>
+                        <a th:text="${transaction.status}" class="h6 fw-bolder text-decoration-none link-dark stretched-link" href="#!"></a>
                     </div>
                 </div>
             </div>

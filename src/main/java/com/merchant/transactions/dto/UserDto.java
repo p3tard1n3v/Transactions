@@ -1,18 +1,20 @@
 package com.merchant.transactions.dto;
 
-import com.merchant.transactions.model.enums.UserRole;
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
+
 import javax.validation.constraints.NotEmpty;
 
 @Data
-@Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
 public class UserDto {
     private Long id;
     @NotEmpty
-    private String username;
+    private String name;
     @NotEmpty
     private String password;
-    @NotEmpty
-    private UserRole role;
 }

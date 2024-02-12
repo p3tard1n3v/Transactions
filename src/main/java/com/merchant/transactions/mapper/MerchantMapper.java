@@ -11,23 +11,22 @@ public class MerchantMapper {
         return MerchantEntity.builder()
                 .id(merchantDto.getId())
                 .name(merchantDto.getName())
+                .password(merchantDto.getPassword())
                 .description(merchantDto.getDescription())
                 .email(merchantDto.getEmail())
                 .status(merchantDto.getStatus())
                 .totalTransactionSum(merchantDto.getTotalTransactionSum())
-                .user(merchantDto.getUser())
                 .build();
     }
 
     public static MerchantDto mapToDto(MerchantEntity merchantEntity) {
         return MerchantDto.builder()
-                .id(merchantEntity.getId())
+                .id(merchantEntity.getId() != null ? merchantEntity.getId() : null)
                 .name(merchantEntity.getName())
                 .description(merchantEntity.getDescription())
                 .email(merchantEntity.getEmail())
                 .status(merchantEntity.getStatus())
                 .totalTransactionSum(merchantEntity.getTotalTransactionSum())
-                .user(merchantEntity.getUser())
                 .created(merchantEntity.getCreated())
                 .transactions(merchantEntity.getTransactions().stream().map(trans -> AuthorizeTransactionMapper.mapToDto(trans)).collect(Collectors.toSet()))
                 .build();

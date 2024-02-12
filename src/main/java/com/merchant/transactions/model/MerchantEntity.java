@@ -2,7 +2,10 @@ package com.merchant.transactions.model;
 
 import com.merchant.transactions.model.enums.MerchantStatus;
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicUpdate;
 
@@ -16,13 +19,10 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @SuperBuilder
-@Entity(name = "merchants")
+@DiscriminatorValue("MERCHANT")
 @DynamicUpdate
-public class MerchantEntity extends BaseEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String name;
+@Entity
+public class MerchantEntity extends UserEntity {
     private String description;
     @Email
     @NotEmpty
@@ -31,9 +31,6 @@ public class MerchantEntity extends BaseEntity {
     private MerchantStatus status;
     private BigDecimal totalTransactionSum;
 
-    @ManyToOne
-    private UserEntity user;
-
-    @OneToMany(mappedBy = "merchant")
+    @OneToMany(mappedBy = "merchant", fetch = FetchType.EAGER)
     private Set<AuthorizeTransactionEntity> transactions;
 }
