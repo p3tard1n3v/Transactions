@@ -2,7 +2,6 @@ package com.merchant.transactions.service;
 
 import com.merchant.transactions.dto.UserDto;
 import com.merchant.transactions.model.UserEntity;
-import com.merchant.transactions.model.enums.UserRole;
 import com.merchant.transactions.repository.UserRepository;
 import com.merchant.transactions.service.impl.UserServiceImpl;
 import org.assertj.core.api.Assertions;
@@ -46,7 +45,7 @@ public class UserServiceTests {
     public void shouldFindByUsernameReturnFindByUsernameFromRepository() {
         String username = "Gosho";
         UserEntity user = mock(UserEntity.class);
-        when(userRepository.findByUsername(username)).thenReturn(user);
+        when(userRepository.findByName(username)).thenReturn(user);
 
         UserEntity userFromService = userService.findByUsername(username);
 
@@ -57,9 +56,8 @@ public class UserServiceTests {
     public void shouldSaveUserFromDtoObjectAndReturnEntityFromRepository() {
         final UserDto userDto = mock(UserDto.class);
         UserEntity userReturn = mock(UserEntity.class);
-        when(userDto.getUsername()).thenReturn("test1");
+        when(userDto.getName()).thenReturn("test1");
         when(userDto.getPassword()).thenReturn("test1");
-        when(userDto.getRole()).thenReturn(UserRole.USER);
         String hashPass = "asdasd345345!sdfsdf";
         when(passwordEncoder.encode(userDto.getPassword())).thenReturn(hashPass);
         lenient().when(userRepository.save(any(UserEntity.class))).thenReturn(userReturn);
@@ -69,8 +67,7 @@ public class UserServiceTests {
         Assertions.assertThat(userFromService).isEqualTo(userReturn);
         verify(userRepository).save(userEntityCaptor.capture());
         UserEntity valueUser = userEntityCaptor.getValue();
-        Assertions.assertThat(valueUser.getUsername()).isEqualTo(userDto.getUsername());
-        Assertions.assertThat(valueUser.getRole()).isEqualTo(userDto.getRole());
+        Assertions.assertThat(valueUser.getName()).isEqualTo(userDto.getName());
         Assertions.assertThat(valueUser.getPassword()).isEqualTo(hashPass);
     }
 

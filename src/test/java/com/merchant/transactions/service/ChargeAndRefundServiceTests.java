@@ -3,10 +3,10 @@ package com.merchant.transactions.service;
 import com.merchant.transactions.model.ApprovedTransactionEntity;
 import com.merchant.transactions.model.AuthorizeTransactionEntity;
 import com.merchant.transactions.model.MerchantEntity;
-import com.merchant.transactions.model.enums.TransactionStatus;
+import com.merchant.transactions.model.RefundTransactionEntity;
 import com.merchant.transactions.repository.ApprovedTransactionRepository;
+import com.merchant.transactions.repository.RefundTransactionRepository;
 import com.merchant.transactions.service.impl.ChargeAndRefundServiceImpl;
-import com.merchant.transactions.service.impl.NotAllowedOperationRefundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -16,13 +16,9 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -30,12 +26,17 @@ public class ChargeAndRefundServiceTests {
     @Mock
     private ApprovedTransactionRepository approvedTransactionRepository;
     @Mock
+    private RefundTransactionRepository refundTransactionRepository;
+    @Mock
     private MerchantService merchantService;
     @InjectMocks
     private ChargeAndRefundServiceImpl chargeAndRefundService;
 
     @Captor
     ArgumentCaptor<ApprovedTransactionEntity> approvedTransactionEntityCaptor;
+
+    @Captor
+    ArgumentCaptor<RefundTransactionEntity> refundTransactionEntityCaptor;
 
     @Test
     public void shouldCreateNewApprovedTransactionRefreshMerchantTotalSumWhenApprovedIsCalled() {
@@ -61,11 +62,10 @@ public class ChargeAndRefundServiceTests {
         assertThat(transactionValue.getAmount()).isEqualTo(BigDecimal.TEN);
         assertThat(transactionValue.getMerchant()).isEqualTo(merchantMock);
         assertThat(transactionValue.getReference()).isEqualTo(uuid);
-        assertThat(transactionValue.getStatus()).isEqualTo(TransactionStatus.APPROVED);
     }
 
     @Test
-    public void shouldCreateNewRefundTransactionRefreshMerchantTotalSumWhenRefundIsCalled() throws NotAllowedOperationRefundException {
+    public void shouldCreateNewRefundTransactionRefreshMerchantTotalSumWhenRefundIsCalled() {
         ApprovedTransactionEntity approvedTransaction = mock(ApprovedTransactionEntity.class);
         when(approvedTransaction.getAmount()).thenReturn(BigDecimal.TEN);
         UUID uuid = UUID.randomUUID();
@@ -74,45 +74,19 @@ public class ChargeAndRefundServiceTests {
         long merchantId = 1234545l;
         when(merchantMock.getId()).thenReturn(merchantId);
         when(approvedTransaction.getMerchant()).thenReturn(merchantMock);
-        when(approvedTransaction.getStatus()).thenReturn(TransactionStatus.APPROVED);
 
-        ApprovedTransactionEntity transactionRepo = mock(ApprovedTransactionEntity.class);
-        when(approvedTransactionRepository.saveAndFlush(any(ApprovedTransactionEntity.class))).thenReturn(transactionRepo);
+        RefundTransactionEntity transactionRepo = mock(RefundTransactionEntity.class);
+        when(refundTransactionRepository.saveAndFlush(any(RefundTransactionEntity.class))).thenReturn(transactionRepo);
         doNothing().when(merchantService).updateTotalSum(merchantId);
 
-        ApprovedTransactionEntity refundedTransaction = chargeAndRefundService.refund(approvedTransaction);
+        RefundTransactionEntity refundedTransaction = chargeAndRefundService.refund(approvedTransaction);
 
         assertThat(refundedTransaction).isEqualTo(transactionRepo);
 
-        verify(approvedTransactionRepository).saveAndFlush(approvedTransactionEntityCaptor.capture());
-        ApprovedTransactionEntity transactionValue = approvedTransactionEntityCaptor.getValue();
+        verify(refundTransactionRepository).saveAndFlush(refundTransactionEntityCaptor.capture());
+        ApprovedTransactionEntity transactionValue = refundTransactionEntityCaptor.getValue();
         assertThat(transactionValue.getAmount()).isEqualTo(BigDecimal.TEN);
         assertThat(transactionValue.getMerchant()).isEqualTo(merchantMock);
         assertThat(transactionValue.getReference()).isEqualTo(uuid);
-        assertThat(transactionValue.getStatus()).isEqualTo(TransactionStatus.REFUNDED);
-    }
-
-    @Test
-    public void shouldThrowExceptionWhenRefundTransactionFromAnyOtherTypeThanApproved() {
-        List<TransactionStatus> nonApprovedStatus = Arrays.stream(TransactionStatus.values())
-                .filter(s -> !s.equals(TransactionStatus.APPROVED)).collect(Collectors.toList());
-        nonApprovedStatus.add(null);
-        
-        for (var status: nonApprovedStatus) {
-            testForNonApprovedStatuses(status);
-        }
-    }
-
-    private void testForNonApprovedStatuses(TransactionStatus status) {
-        ApprovedTransactionEntity approvedTransaction = mock(ApprovedTransactionEntity.class);
-        when(approvedTransaction.getStatus()).thenReturn(status);
-
-        Exception exception = assertThrows(NotAllowedOperationRefundException.class, () -> {
-            chargeAndRefundService.refund(approvedTransaction);
-        });
-
-        assertThat(exception.getMessage())
-                .isEqualTo("refund operation cannot be execute on transaction that is not in status="
-                        + TransactionStatus.APPROVED);
     }
 }
